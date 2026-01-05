@@ -1,0 +1,190 @@
+<div class="p-4 sm:p-6">
+  <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 sm:p-6 bg-gradient-to-r from-indigo-50 to-purple-50 border-b border-gray-200">
+      <div class="mb-4 sm:mb-0">
+        <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mr-3 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          Ticket History
+        </h1>
+        <p class="text-sm text-gray-600 mt-1">View all ticket changes and activities</p>
+      </div>
+      <button
+        (click)="exportToCSV()"
+        [disabled]="filteredHistories.length === 0"
+        class="w-full sm:w-auto flex items-center justify-center px-4 py-2 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-lg hover:from-indigo-600 hover:to-indigo-700 transition-colors duration-200 shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+        </svg>
+        Export History
+      </button>
+    </div>
+
+    <!-- Search and Filters -->
+    <div class="p-4 sm:p-6 border-b border-gray-200">
+      <div class="flex flex-col sm:flex-row gap-3">
+        <div class="flex-1 relative">
+          <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+          <input
+            type="text"
+            [(ngModel)]="searchTerm"
+            (input)="applyFilters()"
+            placeholder="Search by ticket, user, or description..."
+            class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+          />
+        </div>
+        <button
+          (click)="toggleFilters()"
+          class="flex items-center justify-center gap-2 px-4 py-2.5 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors bg-white"
+        >
+          <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+          </svg>
+          <span class="font-medium text-gray-700">Filters</span>
+          <span *ngIf="activeFiltersCount > 0" class="bg-indigo-600 text-white text-xs rounded-full px-2 py-0.5">{{ activeFiltersCount }}</span>
+        </button>
+      </div>
+
+      <!-- Filter Panel -->
+      <div *ngIf="showFilters" class="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <!-- Action Filter -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Action Type</label>
+            <select [(ngModel)]="filterAction" (change)="applyFilters()" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+              <option value="">All Actions</option>
+              <option *ngFor="let action of availableActions" [value]="action.value">{{ action.label }}</option>
+            </select>
+          </div>
+
+          <!-- Ticket Filter -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Ticket</label>
+            <input
+              type="text"
+              [(ngModel)]="filterTicket"
+              (input)="applyFilters()"
+              placeholder="Filter by ticket name..."
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            />
+          </div>
+
+          <!-- Clear Filters -->
+          <div class="flex items-end">
+            <button
+              (click)="clearFilters()"
+              class="w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              Clear Filters
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading && ticketHistories.length === 0" class="flex justify-center items-center py-12">
+      <svg class="animate-spin h-8 w-8 text-indigo-600" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
+    </div>
+
+    <!-- Error Message -->
+    <div *ngIf="error && !loading" class="p-4 bg-red-50 border-l-4 border-red-500 text-red-700">
+      {{ error }}
+    </div>
+
+    <!-- History Table -->
+    <div *ngIf="!loading || ticketHistories.length > 0" class="overflow-x-auto">
+      <table class="w-full">
+        <thead class="bg-gray-50 border-b border-gray-200">
+          <tr>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Timestamp</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ticket</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">Description</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">Modified By</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <tr *ngFor="let history of filteredHistories; let i = index" class="hover:bg-gray-50 transition-colors duration-150">
+            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+              <div class="flex flex-col">
+                <span class="font-medium text-gray-900">{{ history.timestamp | date: 'short' }}</span>
+                <span class="text-xs text-gray-500">{{ history.timestamp | date: 'MMM d, y' }}</span>
+              </div>
+            </td>
+            <td class="px-4 py-3 text-sm">
+              <div class="flex flex-col">
+                <span class="font-medium text-gray-900">Ticket ID: {{ history.ticketId }}</span>
+              </div>
+            </td>
+            <td class="px-4 py-3 whitespace-nowrap text-sm">
+              <div class="flex items-center">
+                <svg class="w-5 h-5 mr-2" [class]="getActionClass(history.action)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="getActionIcon(history.action)"></path>
+                </svg>
+                <span [class]="getActionClass(history.action)" class="px-2 py-1 rounded-full text-xs font-semibold">
+                  {{ history.action }}
+                </span>
+              </div>
+            </td>
+            <td class="px-4 py-3 text-sm text-gray-600 hidden lg:table-cell">
+              <div class="max-w-md">
+                <span *ngIf="history.oldStatus && history.newStatus">
+                  {{ history.oldStatus }} → {{ history.newStatus }}
+                </span>
+                <span *ngIf="history.comment">{{ history.comment }}</span>
+              </div>
+            </td>
+            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600 hidden md:table-cell">
+              <div class="flex items-center">
+                <div class="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center mr-2">
+                  <span class="text-indigo-600 font-semibold text-xs">{{ (history.userName.charAt(0) || 'S').toUpperCase() }}</span>
+                </div>
+                <span>{{ history.userName || 'System' }}</span>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Table Footer -->
+      <div class="flex flex-col sm:flex-row justify-between items-center px-4 py-4 bg-gray-50 border-t border-gray-200">
+        <div class="mb-3 sm:mb-0">
+          <p class="text-sm text-gray-700">
+            <span class="font-semibold text-gray-900">Total Records:</span>
+            <span class="ml-2 px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full font-bold">{{ filteredHistories.length }}</span>
+            <span *ngIf="filteredHistories.length !== ticketHistories.length" class="ml-2 text-gray-500">
+              (filtered from {{ ticketHistories.length }})
+            </span>
+          </p>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="filteredHistories.length === 0 && !loading" class="text-center py-12">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <h3 class="mt-2 text-sm font-medium text-gray-900">{{ ticketHistories.length === 0 ? 'No history records' : 'No matching records' }}</h3>
+        <p class="mt-1 text-sm text-gray-500">{{ ticketHistories.length === 0 ? 'History records will appear here once tickets are modified.' : 'Try adjusting your search or filters.' }}</p>
+        <div class="mt-6">
+          <button
+            *ngIf="ticketHistories.length > 0"
+            (click)="clearFilters()"
+            class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+          >
+            Clear Filters
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

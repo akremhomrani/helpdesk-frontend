@@ -1,0 +1,12 @@
+/* Profile Modal Component Styles */
+
+.modal-container {
+  width: 85vw;
+  max-width: 500px;
+}
+
+@media (max-width: 640px) {
+  .modal-container {
+    width: 95vw;
+  }
+}

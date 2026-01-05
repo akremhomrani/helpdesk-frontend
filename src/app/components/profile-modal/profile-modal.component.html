@@ -1,0 +1,242 @@
+<!-- Profile View Modal -->
+<div *ngIf="!showUpdateModal" class="bg-white rounded-xl shadow-2xl w-full modal-container overflow-hidden">
+  <!-- Header -->
+  <div class="flex justify-between items-center p-4 sm:p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+    <div class="flex items-center space-x-3">
+      <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+        <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+        </svg>
+      </div>
+      <h2 class="text-xl font-semibold text-gray-800">User Profile</h2>
+    </div>
+    <button (click)="onClose()" class="text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full p-2 transition-colors duration-200">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Content -->
+  <div class="p-4 sm:p-6 space-y-4 sm:space-y-6">
+    <!-- Profile Avatar -->
+    <div class="flex justify-center mb-4">
+      <div class="w-20 h-20 bg-gradient-to-br from-purple-600 to-violet-600 rounded-full flex items-center justify-center shadow-lg">
+        <span class="text-white font-bold text-3xl">{{ (userProfile && userProfile.firstName && userProfile.firstName.charAt(0).toUpperCase()) || 'U' }}</span>
+      </div>
+    </div>
+
+    <!-- Basic Information Section -->
+    <div class="space-y-4">
+      <h3 class="text-sm font-medium text-gray-900 uppercase tracking-wide border-b border-gray-200 pb-2">
+        Basic Information
+      </h3>
+      
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+          <p class="text-gray-800 bg-gray-50 px-3 py-2 rounded-lg border border-gray-200">{{userProfile?.firstName || 'Not available'}}</p>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+          <p class="text-gray-800 bg-gray-50 px-3 py-2 rounded-lg border border-gray-200">{{userProfile?.lastName || 'Not available'}}</p>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+          <p class="text-gray-800 bg-gray-50 px-3 py-2 rounded-lg border border-gray-200">{{userProfile?.username || 'Not available'}}</p>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+          <p class="text-gray-800 bg-gray-50 px-3 py-2 rounded-lg border border-gray-200">{{userProfile?.email || 'Not available'}}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Role & Permissions Section -->
+    <div class="space-y-4">
+      <h3 class="text-sm font-medium text-gray-900 uppercase tracking-wide border-b border-gray-200 pb-2">
+        Role 
+      </h3>
+      
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Role</label>
+        <p class="text-gray-800 bg-gray-50 px-3 py-2 rounded-lg border border-gray-200">
+          <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-purple-100 text-purple-800">
+            {{formatRole(userProfile?.role)}}
+          </span>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="flex flex-col sm:flex-row justify-end gap-3 p-4 sm:p-6 bg-gray-50 border-t border-gray-200">
+    <button (click)="onClose()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200 w-full sm:w-auto order-2 sm:order-1">
+      Close
+    </button>
+    <button (click)="openUpdateModal()" class="px-6 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200 w-full sm:w-auto order-1 sm:order-2">
+      <span class="flex items-center justify-center">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+        </svg>
+        Update Profile
+      </span>
+    </button>
+  </div>
+</div>
+
+<!-- Update Profile Modal -->
+<div *ngIf="showUpdateModal" class="bg-white rounded-xl shadow-2xl w-full modal-container overflow-hidden">
+  <!-- Header -->
+  <div class="flex justify-between items-center p-4 sm:p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+    <div class="flex items-center space-x-3">
+      <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+        <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+        </svg>
+      </div>
+      <h2 class="text-xl font-semibold text-gray-800">Update Profile</h2>
+    </div>
+    <button (click)="closeUpdateModal()" class="text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full p-2 transition-colors duration-200">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Form Content -->
+  <div class="p-4 sm:p-6 space-y-4 sm:space-y-6">
+    <!-- Error/Success Messages -->
+    <div *ngIf="updateError" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+      {{ updateError }}
+    </div>
+    <div *ngIf="updateSuccess" class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm">
+      {{ updateSuccess }}
+    </div>
+
+    <form (ngSubmit)="onUpdate()" class="space-y-4 sm:space-y-6">
+      <!-- Basic Information Section -->
+      <div class="space-y-4">
+        <h3 class="text-sm font-medium text-gray-900 uppercase tracking-wide border-b border-gray-200 pb-2">
+          Basic Information
+        </h3>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="updateFirstName" class="block text-sm font-medium text-gray-700 mb-1">
+              First Name <span class="text-red-500">*</span>
+            </label>
+            <input
+              id="updateFirstName"
+              type="text"
+              [(ngModel)]="updateForm.firstName"
+              name="firstName"
+              required
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+              placeholder="Enter first name"
+            />
+          </div>
+
+          <div>
+            <label for="updateLastName" class="block text-sm font-medium text-gray-700 mb-1">
+              Last Name <span class="text-red-500">*</span>
+            </label>
+            <input
+              id="updateLastName"
+              type="text"
+              [(ngModel)]="updateForm.lastName"
+              name="lastName"
+              required
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+              placeholder="Enter last name"
+            />
+          </div>
+
+          <div>
+            <label for="updateUsername" class="block text-sm font-medium text-gray-700 mb-1">
+              Username
+            </label>
+            <input
+              id="updateUsername"
+              type="text"
+              [value]="userProfile?.username || ''"
+              name="username"
+              disabled
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm bg-gray-100 text-gray-500 cursor-not-allowed"
+              placeholder="Username cannot be changed"
+            />
+          </div>
+
+          <div>
+            <label for="updateEmail" class="block text-sm font-medium text-gray-700 mb-1">
+              Email <span class="text-red-500">*</span>
+            </label>
+            <input
+              id="updateEmail"
+              type="email"
+              [(ngModel)]="updateForm.email"
+              name="email"
+              required
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+              placeholder="Enter email address"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Security Section -->
+      <div class="space-y-4">
+        <h3 class="text-sm font-medium text-gray-900 uppercase tracking-wide border-b border-gray-200 pb-2">
+          Security
+        </h3>
+        
+        <div>
+          <label for="updatePassword" class="block text-sm font-medium text-gray-700 mb-1">
+            New Password
+          </label>
+          <input
+            id="updatePassword"
+            type="password"
+            [(ngModel)]="updateForm.password"
+            name="password"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+            placeholder="Leave blank to keep current password"
+          />
+          <p class="mt-1 text-xs text-gray-500">
+            Note: Changing your password will log you out. You'll need to login again with your new password.
+          </p>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Footer -->
+  <div class="flex flex-col sm:flex-row justify-end gap-3 p-4 sm:p-6 bg-gray-50 border-t border-gray-200">
+    <button 
+      type="button" 
+      (click)="closeUpdateModal()" 
+      [disabled]="updating" 
+      class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 w-full sm:w-auto order-2 sm:order-1">
+      Cancel
+    </button>
+    <button 
+      type="button" 
+      (click)="onUpdate()" 
+      [disabled]="updating" 
+      class="px-6 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 w-full sm:w-auto order-1 sm:order-2">
+      <span *ngIf="!updating" class="flex items-center justify-center">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+        </svg>
+        Update
+      </span>
+      <span *ngIf="updating" class="flex items-center justify-center">
+        <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        Updating...
+      </span>
+    </button>
+  </div>
+</div>

@@ -1,0 +1,16 @@
+.dashboard-container {
+  /* All styling handled by Tailwind CSS */
+}
+
+/* Activity border colors */
+.activity-blue {
+  border-left: 4px solid #3b82f6;
+}
+
+.activity-green {
+  border-left: 4px solid #22c55e;
+}
+
+.activity-purple {
+  border-left: 4px solid #a855f7;
+}

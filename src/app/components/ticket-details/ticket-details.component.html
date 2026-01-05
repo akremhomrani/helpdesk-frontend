@@ -1,0 +1,293 @@
+<div class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 backdrop-blur-sm"
+  *ngIf="showModal">
+  <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl mx-4 relative max-h-[95vh] flex flex-col">
+    <!-- Modal Header -->
+    <div class="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-6 py-4 flex justify-between items-center">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"></path>
+            <path fill-rule="evenodd"
+              d="M4 5a2 2 0 012-2v1a1 1 0 001 1h6a1 1 0 001-1V3a2 2 0 012 2v6.5a1.5 1.5 0 01-1.5 1.5h-7A1.5 1.5 0 016 11.5V5z"
+              clip-rule="evenodd"></path>
+          </svg>
+        </div>
+        <div>
+          <h2 class="text-xl font-bold">Ticket #{{ ticket?.id ?? 'N/A' }}</h2>
+          <p class="text-purple-100 text-sm">{{ ticket?.title || 'No title' }}</p>
+          <p class="text-purple-100 text-xs">{{ ticket?.type || 'No type specified' }}</p>
+        </div>
+      </div>
+      <button class="text-white hover:bg-white hover:bg-opacity-20 p-2 rounded-lg transition-colors duration-200"
+        (click)="closeModal()" aria-label="Close modal">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Modal Body -->
+    <div class="p-6 overflow-y-auto flex-1" *ngIf="ticket">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Status and Priority Cards -->
+        <div class="lg:col-span-2 flex flex-wrap gap-4 mb-4">
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-medium text-gray-600">Status:</span>
+            <span
+              class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium {{ getStatusColor(ticket.status) }}">
+              <span class="w-2 h-2 rounded-full mr-2 {{ getStatusDotColor(ticket.status) }}"></span>
+              {{ ticket.status || 'N/A' }}
+            </span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-medium text-gray-600">Priority:</span>
+            <span
+              class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium {{ getPriorityColor(ticket.priority) }}">
+              <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.293l-3-3a1 1 0 00-1.414-1.414L9 7.586 7.707 6.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4a1 1 0 00-1.414-1.414L10 9.586z"
+                  clip-rule="evenodd"></path>
+              </svg>
+              {{ ticket.priority || 'N/A' }}
+            </span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-medium text-gray-600">Type:</span>
+            <span
+              class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800">
+              {{ ticket.type || 'N/A' }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Description Card -->
+        <div class="lg:col-span-2 bg-gray-50 rounded-lg p-4 border border-gray-200">
+          <h3 class="text-lg font-semibold text-gray-800 mb-2 flex items-center gap-2">
+            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+              </path>
+            </svg>
+            Description
+          </h3>
+          <p class="text-gray-700 leading-relaxed">{{ ticket.description || 'No description provided' }}</p>
+        </div>
+
+        <!-- Basic Information -->
+        <div class="space-y-4">
+          <div class="bg-white border border-gray-200 rounded-lg p-4">
+            <h3 class="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
+              <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              Basic Information
+            </h3>
+            <div class="space-y-3">
+              <div class="flex justify-between items-start">
+                <span class="text-sm font-medium text-gray-600">Department:</span>
+                <span class="text-sm text-gray-900 text-right">{{ ticket.departementName || 'N/A' }}</span>
+              </div>
+              <div class="flex justify-between items-start">
+                <span class="text-sm font-medium text-gray-600">Creator:</span>
+                <span class="text-sm text-gray-900 text-right">{{ ticket.creatorName || 'N/A' }}</span>
+              </div>
+              <div *ngIf="ticket.assignedUserName" class="flex justify-between items-start">
+                <span class="text-sm font-medium text-gray-600">Assigned To:</span>
+                <span class="text-sm text-gray-900 text-right">{{ ticket.assignedUserName }}</span>
+              </div>
+              <div *ngIf="ticket.estimatedResolutionTime" class="flex justify-between items-start">
+                <span class="text-sm font-medium text-gray-600">Estimated Resolution:</span>
+                <span class="text-sm text-gray-900 text-right">
+                  {{ ticket.estimatedResolutionTime }} minutes
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Contact & Dates -->
+        <div class="space-y-4">
+          <div class="bg-white border border-gray-200 rounded-lg p-4">
+            <h3 class="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
+              <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              Timeline
+            </h3>
+            <div class="space-y-3">
+              <div class="flex justify-between items-start">
+                <span class="text-sm font-medium text-gray-600">Created:</span>
+                <span class="text-sm text-gray-900 text-right">
+                  {{ ticket.createdAt | date: 'MMM d, y, h:mm a' }}
+                </span>
+              </div>
+              <div *ngIf="ticket.updatedAt" class="flex justify-between items-start">
+                <span class="text-sm font-medium text-gray-600">Updated:</span>
+                <span class="text-sm text-gray-900 text-right">
+                  {{ ticket.updatedAt | date: 'MMM d, y, h:mm a' }}
+                </span>
+              </div>
+              <div *ngIf="ticket.resolvedAt" class="flex justify-between items-start">
+                <span class="text-sm font-medium text-gray-600">Resolved:</span>
+                <span class="text-sm text-gray-900 text-right">
+                  {{ ticket.resolvedAt | date: 'MMM d, y, h:mm a' }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Feedback Section -->
+          <div *ngIf="ticket.feedback" class="bg-white border border-gray-200 rounded-lg p-4">
+            <h3 class="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
+              <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z">
+                </path>
+              </svg>
+              Feedback
+            </h3>
+            <p class="text-gray-700 leading-relaxed">{{ ticket.feedback }}</p>
+          </div>
+        </div>
+
+        <!-- Attachment Section -->
+        <div class="lg:col-span-2 bg-white border border-gray-200 rounded-lg p-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Attachment Section -->
+            <div>
+              <h3 class="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.586-6.586a4 4 0 00-5.656-5.656l-6.586 6.586a6 6 0 108.485 8.485L21.172 13">
+                  </path>
+                </svg>
+                Attachment
+              </h3>
+              <div class="flex items-center gap-3" *ngIf="!ticket.hasAttachment">
+                <div class="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                  <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                    </path>
+                  </svg>
+                </div>
+                <span class="text-gray-500">No attachment</span>
+              </div>
+              <div class="flex items-center gap-3" *ngIf="ticket.hasAttachment && ticket.attachmentName">
+                <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                  <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.586-6.586a4 4 0 00-5.656-5.656l-6.586 6.586a6 6 0 108.485 8.485L21.172 13">
+                    </path>
+                  </svg>
+                </div>
+                <div class="flex-1">
+                  <button (click)="downloadAttachment()"
+                    class="text-purple-600 hover:text-purple-800 hover:underline font-medium flex items-center gap-2 transition-colors duration-200">
+                    {{ getAttachmentFileName(ticket.attachmentName) }}
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V13a2 2 0 01-2 2z">
+                      </path>
+                    </svg>
+                  </button>
+                  <p class="text-sm text-gray-500 mt-1">Click to download</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Solution Section -->
+            <div>
+              <h3 class="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z">
+                  </path>
+                </svg>
+                Ticket Solution
+              </h3>
+              <div class="flex items-center gap-3" *ngIf="!ticket.hasSolution">
+                <div class="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                  <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                    </path>
+                  </svg>
+                </div>
+                <span class="text-gray-500">No solution</span>
+              </div>
+              <div class="flex items-center gap-3" *ngIf="ticket.hasSolution && ticket.solutionName">
+                <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                  <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z">
+                    </path>
+                  </svg>
+                </div>
+                <div class="flex-1">
+                  <button (click)="downloadSolution()"
+                    class="text-purple-600 hover:text-purple-800 hover:underline font-medium flex items-center gap-2 transition-colors duration-200">
+                    {{ getSolutionFileName(ticket.solutionName) }}
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V13a2 2 0 01-2 2z">
+                      </path>
+                    </svg>
+                  </button>
+                  <p class="text-sm text-gray-500 mt-1">Click to download</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="p-6 text-center text-gray-600" *ngIf="!ticket">
+      <div class="flex flex-col items-center gap-3">
+        <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
+          <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+            </path>
+          </svg>
+        </div>
+        <p class="text-lg font-medium">No ticket data available</p>
+      </div>
+    </div>
+
+    <!-- Modal Footer -->
+    <div
+      class="bg-gray-50 px-6 py-4 border-t border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-4">
+      <button
+        class="w-full sm:w-auto bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition-colors duration-200 flex items-center justify-center gap-2 font-medium"
+        [disabled]="!ticket" (click)="exportToCSV()">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V13a2 2 0 01-2 2z">
+          </path>
+        </svg>
+        Export to CSV
+      </button>
+      <div class="flex flex-col-reverse sm:flex-row gap-2 w-full sm:w-auto">
+        <button
+          class="w-full sm:w-auto bg-gray-200 text-gray-800 px-6 py-2 rounded-lg hover:bg-gray-300 transition-colors duration-200 font-medium"
+          (click)="closeModal()">
+          Close
+        </button>
+        <button *ngIf="ticket"
+          class="w-full sm:w-auto bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors duration-200 flex items-center justify-center gap-2 font-medium"
+          (click)="onEditTicket()">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
+            </path>
+          </svg>
+          Edit Ticket
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

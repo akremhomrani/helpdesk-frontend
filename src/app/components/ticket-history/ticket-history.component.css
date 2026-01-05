@@ -1,0 +1,56 @@
+/* Ticket History Component Styles */
+
+.dashboard-container {
+  padding: 1.5rem;
+}
+
+/* Responsive table scrolling */
+@media (max-width: 768px) {
+  table {
+    font-size: 0.875rem;
+  }
+  
+  th, td {
+    padding: 0.5rem !important;
+  }
+}
+
+/* Animation for loading */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+tbody tr {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Hover effects */
+.hover\:scale-105:hover {
+  transform: scale(1.05);
+}
+
+/* Custom scrollbar */
+.overflow-x-auto::-webkit-scrollbar {
+  height: 8px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 10px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}

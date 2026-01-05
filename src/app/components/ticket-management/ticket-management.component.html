@@ -1,0 +1,558 @@
+<div class="p-4 sm:p-6" (click)="closeAllStatusDropdowns()">
+  <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 sm:p-6 bg-gradient-to-r from-purple-50 to-pink-50 border-b border-gray-200">
+      <div class="mb-4 sm:mb-0">
+        <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">Ticket Management</h1>
+        <p class="text-sm text-gray-600 mt-1">Manage and track support tickets</p>
+      </div>
+      <button
+        *ngIf="isClient()"
+        (click)="openAddModal()"
+        class="w-full sm:w-auto flex items-center justify-center px-4 py-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg hover:from-purple-600 hover:to-purple-700 transition-colors duration-200 shadow-md"
+      >
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+        </svg>
+        Create Ticket
+      </button>
+    </div>
+
+    <!-- Search and Filters -->
+    <div class="p-4 sm:p-6 border-b border-gray-200">
+      <div class="flex flex-col sm:flex-row gap-3">
+        <div class="flex-1 relative">
+          <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+          <input
+            type="text"
+            [(ngModel)]="searchTerm"
+            (input)="applyFilters()"
+            placeholder="Search tickets by title, ID, or description..."
+            class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+          />
+        </div>
+        <button
+          (click)="toggleFilters()"
+          class="flex items-center justify-center gap-2 px-4 py-2.5 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors bg-white"
+        >
+          <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+          </svg>
+          <span class="font-medium text-gray-700">Filters</span>
+          <span *ngIf="activeFiltersCount > 0" class="bg-purple-600 text-white text-xs rounded-full px-2 py-0.5">{{ activeFiltersCount }}</span>
+        </button>
+      </div>
+
+      <!-- Filter Panel -->
+      <div *ngIf="showFilters" class="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Status Filter -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+            <select [(ngModel)]="filterStatus" (change)="applyFilters()" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+              <option value="">All Statuses</option>
+              <option *ngFor="let status of availableStatuses" [value]="status.value">{{ status.label }}</option>
+            </select>
+          </div>
+
+          <!-- Priority Filter -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Priority</label>
+            <select [(ngModel)]="filterPriority" (change)="applyFilters()" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+              <option value="">All Priorities</option>
+              <option value="LOW">Low</option>
+              <option value="MEDIUM">Medium</option>
+              <option value="HIGH">High</option>
+              <option value="CRITICAL">Critical</option>
+            </select>
+          </div>
+
+          <!-- Type Filter -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Type</label>
+            <select [(ngModel)]="filterType" (change)="applyFilters()" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+              <option value="">All Types</option>
+              <option value="PROBLEM">Problem</option>
+              <option value="INCIDENT">Incident</option>
+              <option value="REQUEST">Request</option>
+            </select>
+          </div>
+
+          <!-- Clear Filters -->
+          <div class="flex items-end">
+            <button
+              (click)="clearFilters()"
+              class="w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              Clear Filters
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading && tickets.length === 0" class="flex justify-center items-center py-12">
+      <svg class="animate-spin h-8 w-8 text-purple-600" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
+    </div>
+
+    <!-- Error Message -->
+    <div *ngIf="error && !loading" class="p-4 bg-red-50 border-l-4 border-red-500 text-red-700">
+      {{ error }}
+    </div>
+
+    <!-- Tickets Table -->
+    <div *ngIf="!loading || tickets.length > 0" class="overflow-x-auto">
+      <table class="w-full">
+        <thead class="bg-gray-50 border-b border-gray-200">
+          <tr>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">Type</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Priority</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">Attachment</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">Creator</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">Department</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden xl:table-cell">Created</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <tr *ngFor="let ticket of filteredTickets; let i = index" class="hover:bg-gray-50 transition-colors duration-150">
+            <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
+              {{ i + 1 }}
+            </td>
+            <td class="px-4 py-3 text-sm text-gray-900">
+              <div class="max-w-xs truncate">{{ ticket.title }}</div>
+            </td>
+            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600 hidden md:table-cell">
+              {{ ticket.type }}
+            </td>
+            <td class="px-4 py-3 whitespace-nowrap text-sm">
+              <span [class]="getPriorityClass(ticket.priority)" class="px-2 py-1 rounded-full text-xs font-semibold">
+                {{ ticket.priority }}
+              </span>
+            </td>
+            <td class="px-4 py-3 whitespace-nowrap text-sm">
+              <!-- Status dropdown for ADMIN and TECH_SUPPORT -->
+              <button
+                *ngIf="canUpdateStatus()"
+                #statusButton
+                (click)="toggleStatusDropdown(ticket.id!, statusButton); $event.stopPropagation()"
+                [class]="getStatusClass(ticket.status)"
+                class="px-2 py-1 rounded-full text-xs font-semibold cursor-pointer hover:opacity-80 transition-opacity flex items-center gap-1"
+              >
+                {{ ticket.status }}
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </button>
+              <!-- Read-only status badge for other roles -->
+              <span
+                *ngIf="!canUpdateStatus()"
+                [class]="getStatusClass(ticket.status)"
+                class="px-2 py-1 rounded-full text-xs font-semibold"
+              >
+                {{ ticket.status }}
+              </span>
+            </td>
+            <td class="px-4 py-3 whitespace-nowrap text-sm text-center hidden md:table-cell">
+              <span *ngIf="ticket.hasAttachment" class="inline-flex items-center justify-center" title="Has attachment">
+                <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
+                </svg>
+              </span>
+              <span *ngIf="!ticket.hasAttachment" class="text-gray-400">-</span>
+            </td>
+            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600 hidden lg:table-cell">
+              <div class="flex items-center">
+               
+                <span>{{ ticket.creatorName || 'N/A' }}</span>
+              </div>
+            </td>
+            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600 hidden lg:table-cell">
+              {{ ticket.departementName || 'N/A' }}
+            </td>
+            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600 hidden xl:table-cell">
+              {{ ticket.createdAt ? (ticket.createdAt | date: 'short') : 'N/A' }}
+            </td>
+            <td class="px-4 py-3 whitespace-nowrap text-sm">
+              <div class="flex space-x-2">
+                <button
+                  (click)="openDetailsModal(ticket)"
+                  class="text-purple-600 hover:text-purple-800 transition-colors duration-200"
+                  title="View Details"
+                >
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                  </svg>
+                </button>
+                <button
+                  *ngIf="canEditThisTicket(ticket)"
+                  (click)="openEditModal(ticket)"
+                  class="text-blue-600 hover:text-blue-800 transition-colors duration-200"
+                  title="Edit"
+                >
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                  </svg>
+                </button>
+                <button
+                  (click)="openDeleteModal(ticket)"
+                  class="text-red-600 hover:text-red-800 transition-colors duration-200"
+                  title="Delete"
+                >
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                  </svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Table Footer with Stats and Export -->
+      <div class="flex flex-col sm:flex-row justify-between items-center px-4 py-4 bg-gray-50 border-t border-gray-200">
+        <div class="mb-3 sm:mb-0">
+          <p class="text-sm text-gray-700">
+            <span class="font-semibold text-gray-900">Total Tickets:</span>
+            <span class="ml-2 px-3 py-1 bg-purple-100 text-purple-800 rounded-full font-bold">{{ filteredTickets.length }}</span>
+            <span *ngIf="filteredTickets.length !== tickets.length" class="ml-2 text-gray-500">
+              (filtered from {{ tickets.length }})
+            </span>
+          </p>
+        </div>
+        <button
+          (click)="exportToCSV()"
+          [disabled]="filteredTickets.length === 0"
+          class="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-purple-600 to-violet-600 text-white rounded-lg hover:from-purple-700 hover:to-violet-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-xl hover:shadow-2xl"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          </svg>
+          Export CSV
+        </button>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="filteredTickets.length === 0 && !loading" class="text-center py-12">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"></path>
+        </svg>
+        <h3 class="mt-2 text-sm font-medium text-gray-900">{{ tickets.length === 0 ? 'No tickets' : 'No matching tickets' }}</h3>
+        <p class="mt-1 text-sm text-gray-500">{{ tickets.length === 0 ? (isClient() ? 'Get started by creating a new ticket.' : 'No tickets available.') : 'Try adjusting your search or filters.' }}</p>
+        <div class="mt-6">
+          <button
+            *ngIf="tickets.length === 0 && isClient()"
+            (click)="openAddModal()"
+            class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700"
+          >
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+            </svg>
+            Create Ticket
+          </button>
+          <button
+            *ngIf="tickets.length > 0"
+            (click)="clearFilters()"
+            class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700"
+          >
+            Clear Filters
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Status Dropdown Portal (renders on top of everything) -->
+<div *ngFor="let ticket of tickets">
+  <div *ngIf="showStatusDropdown[ticket.id!]" 
+       class="fixed z-[9999] w-48 bg-white rounded-lg shadow-2xl border border-gray-200 py-1"
+       [style.top.px]="dropdownPosition.top"
+       [style.left.px]="dropdownPosition.left"
+       (click)="$event.stopPropagation()">
+    <button
+      *ngFor="let status of getAvailableStatusesForTicket(ticket)"
+      (click)="updateTicketStatus(ticket, status.value)"
+      [class.bg-indigo-50]="ticket.status === status.value"
+      class="block w-full text-left px-3 py-2 text-sm hover:bg-gray-50 transition-colors"
+    >
+      <span [class]="getStatusClass(status.value)" class="px-2 py-1 rounded-full text-xs font-semibold inline-block w-full text-center">
+        {{ status.label }}
+      </span>
+    </button>
+  </div>
+</div>
+
+<!-- Add/Edit Ticket Modal -->
+<div *ngIf="showModal" 
+     class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-1 sm:p-2"
+     role="dialog" 
+     aria-modal="true">
+  <app-add-ticket-form
+    [ticket]="selectedTicket"
+    [mode]="modalMode"
+    [loading]="loading"
+    [showStatusField]="canUpdateStatus()"
+    (save)="saveTicket($event)"
+    (cancel)="closeModal()">
+  </app-add-ticket-form>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div *ngIf="showDeleteModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" role="dialog" aria-modal="true">
+  <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6">
+    <div class="flex flex-col items-center text-center">
+      <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+      </div>
+      
+      <h2 class="text-2xl font-bold text-gray-900 mb-2">Are you sure?</h2>
+      
+      <p class="text-gray-600 mb-6">
+        The ticket <strong>{{ ticketToDelete?.title }}</strong> will be permanently deleted and cannot be recovered.
+      </p>
+      
+      <div class="flex space-x-3 w-full">
+        <button
+          type="button"
+          (click)="closeDeleteModal()"
+          [disabled]="loading"
+          class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          (click)="confirmDelete()"
+          [disabled]="loading"
+          class="flex-1 px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+        >
+          <span *ngIf="!loading">Yes, delete it</span>
+          <span *ngIf="loading" class="flex items-center justify-center">
+            <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Deleting...
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Rejection Feedback Modal -->
+<div *ngIf="showFeedbackModal" class="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-50 flex items-center justify-center p-4" (click)="closeFeedbackModal()">
+  <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6" (click)="$event.stopPropagation()">
+    <div class="flex flex-col">
+      <div class="flex items-center mb-4">
+        <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mr-3">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </div>
+        <div>
+          <h2 class="text-xl font-bold text-gray-900">Reject Ticket</h2>
+          <p class="text-sm text-gray-600">{{ ticketToReject?.title }}</p>
+        </div>
+      </div>
+      
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          Rejection Feedback <span class="text-red-500">*</span>
+        </label>
+        <textarea
+          [(ngModel)]="feedbackText"
+          rows="4"
+          placeholder="Please explain why this ticket is being rejected..."
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"
+        ></textarea>
+        <p class="mt-1 text-xs text-gray-500">This feedback will be visible to the ticket creator</p>
+      </div>
+      
+      <div class="flex space-x-3">
+        <button
+          type="button"
+          (click)="closeFeedbackModal()"
+          class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-200"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          (click)="submitRejection()"
+          [disabled]="!feedbackText.trim()"
+          class="flex-1 px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+        >
+          Reject Ticket
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Developer Assignment Modal -->
+<div *ngIf="showAssignModal" class="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-50 flex items-center justify-center p-4" (click)="closeAssignModal()">
+  <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6" (click)="$event.stopPropagation()">
+    <div class="flex flex-col">
+      <div class="flex items-center mb-4">
+        <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+        </div>
+        <div>
+          <h2 class="text-xl font-bold text-gray-900">Assign Developer</h2>
+          <p class="text-sm text-gray-600">{{ ticketToAssign?.title }}</p>
+        </div>
+      </div>
+      
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          Select Developer <span class="text-red-500">*</span>
+        </label>
+        
+        <!-- Loading state -->
+        <div *ngIf="loadingDevelopers" class="flex items-center justify-center py-4">
+          <svg class="animate-spin h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <span class="ml-2 text-gray-600">Loading developers...</span>
+        </div>
+        
+        <!-- Developer list -->
+        <div *ngIf="!loadingDevelopers && departmentDevelopers.length > 0" class="space-y-2 max-h-60 overflow-y-auto">
+          <label 
+            *ngFor="let developer of departmentDevelopers" 
+            class="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-blue-50 transition-colors"
+            [class.border-blue-500]="selectedDeveloperId === developer.id"
+            [class.bg-blue-50]="selectedDeveloperId === developer.id"
+            [class.border-gray-200]="selectedDeveloperId !== developer.id"
+          >
+            <input 
+              type="radio" 
+              name="developer" 
+              [value]="developer.id" 
+              [(ngModel)]="selectedDeveloperId"
+              class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+            />
+            <div class="ml-3">
+              <p class="text-sm font-medium text-gray-900">{{ developer.firstName }} {{ developer.lastName }}</p>
+              <p class="text-xs text-gray-500">{{ developer.email }}</p>
+            </div>
+          </label>
+        </div>
+        
+        <!-- No developers found -->
+        <div *ngIf="!loadingDevelopers && departmentDevelopers.length === 0" class="text-center py-4">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-gray-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
+          <p class="text-gray-600">No developers found in this department</p>
+        </div>
+        
+        <p class="mt-2 text-xs text-gray-500">The selected developer will be assigned to work on this ticket</p>
+      </div>
+      
+      <div class="flex space-x-3">
+        <button
+          type="button"
+          (click)="closeAssignModal()"
+          class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-200"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          (click)="submitAssignment()"
+          [disabled]="!selectedDeveloperId || loadingDevelopers"
+          class="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+        >
+          Assign & Review
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Solution Upload Modal -->
+<div *ngIf="showSolutionModal" class="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-50 flex items-center justify-center p-4" (click)="closeSolutionModal()">
+  <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6" (click)="$event.stopPropagation()">
+    <div class="flex flex-col">
+      <div class="flex items-center mb-4">
+        <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mr-3">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <div>
+          <h2 class="text-xl font-bold text-gray-900">Resolve Ticket</h2>
+          <p class="text-sm text-gray-600">{{ ticketToResolve?.title }}</p>
+        </div>
+      </div>
+      
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          Upload Solution File <span class="text-red-500">*</span>
+        </label>
+        
+        <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-green-400 transition-colors">
+          <input 
+            type="file" 
+            id="solutionFile" 
+            (change)="onSolutionFileSelect($event)"
+            class="hidden"
+          />
+          <label for="solutionFile" class="cursor-pointer">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 mx-auto text-gray-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+            </svg>
+            <p class="text-sm text-gray-600" *ngIf="!solutionFile">Click to select a file</p>
+            <p class="text-sm text-green-600 font-medium" *ngIf="solutionFile">{{ solutionFile.name }}</p>
+          </label>
+        </div>
+        
+        <p class="mt-2 text-xs text-gray-500">Upload the solution file to resolve this ticket</p>
+      </div>
+      
+      <div class="flex space-x-3">
+        <button
+          type="button"
+          (click)="closeSolutionModal()"
+          class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-200"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          (click)="submitSolution()"
+          [disabled]="!solutionFile"
+          class="flex-1 px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+        >
+          Submit Solution
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Ticket Details Modal -->
+<app-ticket-details
+  [showModal]="showDetailsModal"
+  [ticket]="ticketDetails"
+  (close)="closeDetailsModal()"
+  (editTicket)="onEditFromDetails($event)"
+></app-ticket-details>

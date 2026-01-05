@@ -1,0 +1,95 @@
+<div class="bg-white rounded-xl shadow-2xl w-full max-w-[95vw] sm:max-w-lg max-h-[95vh] overflow-hidden">
+  <!-- Header -->
+  <div class="flex justify-between items-center p-4 sm:p-6 border-b border-gray-200 bg-gradient-to-r from-green-50 to-emerald-50">
+    <div class="flex items-center space-x-3">
+      <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+        <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4h6v6H4z M14 4h6v6h-6z M4 14h6v6H4z M14 14h6v6h-6z"></path>
+        </svg>
+      </div>
+      <h2 class="text-xl font-semibold text-gray-800">
+        {{ mode === 'add' ? 'Add New Department' : 'Edit Department' }}
+      </h2>
+    </div>
+    <button type="button" 
+            (click)="onCancel()" 
+            class="text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full p-2 transition-colors duration-200">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Form Content -->
+  <div class="overflow-y-auto max-h-[calc(95vh-140px)]">
+    <form (ngSubmit)="onSubmit()" class="p-4 sm:p-6 space-y-4">
+      
+      <!-- Error Message -->
+      <div *ngIf="error" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+        {{ error }}
+      </div>
+
+      <div>
+        <label for="name" class="block text-sm font-medium text-gray-700 mb-1">
+          Department Name <span class="text-red-500">*</span>
+        </label>
+        <input
+          id="name"
+          type="text"
+          [(ngModel)]="formDepartment.name"
+          name="name"
+          required
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors duration-200"
+          placeholder="Enter department name"
+        />
+      </div>
+
+      <div>
+        <label for="description" class="block text-sm font-medium text-gray-700 mb-1">
+          Description <span class="text-red-500">*</span>
+        </label>
+        <textarea
+          id="description"
+          [(ngModel)]="formDepartment.description"
+          name="description"
+          required
+          rows="4"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors duration-200"
+          placeholder="Enter department description"
+        ></textarea>
+      </div>
+    </form>
+  </div>
+
+  <!-- Footer -->
+  <div class="flex flex-col sm:flex-row justify-end gap-3 p-4 sm:p-6 bg-gray-50 border-t border-gray-200">
+    <button
+      type="button"
+      (click)="onCancel()"
+      [disabled]="loading"
+      class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 w-full sm:w-auto order-2 sm:order-1"
+    >
+      Cancel
+    </button>
+    <button
+      type="button"
+      (click)="onSubmit()"
+      [disabled]="loading"
+      class="px-6 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 w-full sm:w-auto order-1 sm:order-2"
+    >
+      <span *ngIf="!loading" class="flex items-center justify-center">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+        </svg>
+        {{ mode === 'add' ? 'Add Department' : 'Save Changes' }}
+      </span>
+      <span *ngIf="loading" class="flex items-center justify-center">
+        <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        {{ mode === 'add' ? 'Adding...' : 'Saving...' }}
+      </span>
+    </button>
+  </div>
+</div>
