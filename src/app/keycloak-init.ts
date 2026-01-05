@@ -12,7 +12,7 @@ export function initializeKeycloak(keycloak: KeycloakService) {
     
     return keycloak.init({
       config: {
-        url: 'http://localhost:9090',
+        url: 'https://helpdesk-backend-keycloak.onrender.com',
         realm: 'helpdesk-realm',
         clientId: 'angular-client'
       },
